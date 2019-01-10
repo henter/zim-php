@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Tests;
+namespace Zim\Tests\Routing;
 
 use PHPUnit\Framework\TestCase;
 use Zim\Routing\Route;

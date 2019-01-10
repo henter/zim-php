@@ -26,8 +26,7 @@
     </logging>
     <filter>
         <whitelist>
-            <directory>./app/</directory>
-            <directory>./Zim/</directory>
+            <directory>./src/</directory>
             <exclude>
                 <directory>vendor</directory>
                 <directory>tests</directory>

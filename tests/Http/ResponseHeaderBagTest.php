@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Tests\Http;
+namespace Zim\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
 use Zim\Http\ResponseHeaderBag;

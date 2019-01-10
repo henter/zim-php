@@ -1,5 +1,5 @@
 <?php
-namespace Tests;
+namespace Zim\Tests;
 
 /**
  * File BaseTestCase.php
@@ -23,11 +23,15 @@ class BaseTestCase extends TestCase
     {
         parent::__construct();
         $this->zim = Zim::getInstance();
+        $this->zim->make('config')->set('app', ['k' => 'v']);
     }
 
     public function getConfig(string $name)
     {
-        return require dirname(APP_PATH).'/config/'.$name.'.php';
+        $all = [
+            'app' => ['k' => 'v']
+        ];
+        return $all[$name] ?? null;
     }
 
     /**

@@ -6,10 +6,10 @@
  *
  */
 
-namespace Tests\Http;
+namespace Zim\Tests\Http;
 
 
-use Tests\BaseTestCase;
+use Zim\Tests\BaseTestCase;
 use Zim\Config\Config;
 use Zim\Event\RequestEvent;
 use Zim\Event\ResponseEvent;

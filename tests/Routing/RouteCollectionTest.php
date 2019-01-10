@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Tests\Routing;
+namespace Zim\Tests\Routing;
 
 use Zim\Routing\Route;
 use Zim\Routing\RouteCollection;

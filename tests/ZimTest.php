@@ -1,5 +1,5 @@
 <?php
-namespace Tests;
+namespace Zim\Tests;
 
 use Zim\Config\Config;
 use Zim\Event\Dispatcher;

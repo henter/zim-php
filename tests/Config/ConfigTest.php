@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Tests\Config;
+namespace Zim\Tests\Config;
 
 use PHPUnit\Framework\TestCase;
 use Zim\Config\Config;
