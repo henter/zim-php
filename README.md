@@ -2,9 +2,9 @@
 
 ### About
 
-Zim is a simple framework inspired by Yaf, Laravel, Symfony, based on Zephir Language.
+Zim is a simple framework inspired(copy/paste 😄) by Yaf, Laravel, Symfony, based on Zephir Language.
 
-Delivered as a C extension for the PHP language via [zim-ext](https://github.com/henter/zim-ext) , or you can choose this pure php implementation.
+Delivered as a C extension for the PHP language via [zim-ext](https://github.com/henter/zim-ext) , or you can choose the pure php implementation [zim-php](https://github.com/henter/zim-php)
 
 The demo project [zim](https://github.com/henter/zim)
 

@@ -1,5 +1,5 @@
 {
-    "name": "henter/zim-php",
+    "name": "henter/zim",
     "description": "Zim Framework",
     "type": "library",
     "autoload": {
