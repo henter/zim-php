@@ -30,6 +30,8 @@ class ConfigTest extends TestCase
             'aa' => ['bb', 'cc']
         ];
         $c = new Config($arr);
+        $c->set('e.f.g', 'h');
+
         $this->assertEquals($arr, $c->all());
         $this->assertEquals('b', $c->get('a'));
         $this->assertEquals('b', $c['a']);
