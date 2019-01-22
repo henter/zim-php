@@ -49,6 +49,25 @@ class Router
     }
 
     /**
+     * @param RouteCollection $routes
+     * @return $this
+     */
+    public function setRoutes(RouteCollection $routes)
+    {
+        $this->routes = $routes;
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @return null|Route
+     */
+    public function get(string $name)
+    {
+        return $this->routes->get($name);
+    }
+
+    /**
      * Add a route to the underlying route collection.
      *
      * @param  array|string  $methods
