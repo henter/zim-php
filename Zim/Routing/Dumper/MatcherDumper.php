@@ -236,37 +236,26 @@ EOF;
         }
 
         foreach ($perModifiers as list($modifiers, $routes)) {
-            $prev = false;
-            $perHost = array();
-            foreach ($routes->all() as $name => $route) {
-                if ($prev !== null) {
-                    $routes = new RouteCollection();
-                    $perHost[] = array(null, $routes);
-                    $prev = null;
-                }
-                $routes->add($name, $route);
-            }
             $rx = '{^(?';
             $code .= "\n    {$state->mark} => ".self::export($rx);
             $state->mark += \strlen($rx);
             $state->regex = $rx;
 
-            foreach ($perHost as list($hostRegex, $routes)) {
-                $tree = new StaticPrefixCollection();
-                foreach ($routes->all() as $name => $route) {
-                    preg_match('#^.\^(.*)\$.[a-zA-Z]*$#', $route->compile()->getRegex(), $rx);
+            $tree = new StaticPrefixCollection();
+            foreach ($routes->all() as $name => $route) {
+                preg_match('#^.\^(.*)\$.[a-zA-Z]*$#', $route->compile()->getRegex(), $rx);
 
-                    $state->vars = array();
-                    $regex = preg_replace_callback('#\?P<([^>]++)>#', $state->getVars, $rx[1]);
-                    if ($hasTrailingSlash = '/' !== $regex && '/' === $regex[-1]) {
-                        $regex = substr($regex, 0, -1);
-                    }
-
-                    $tree->addRoute($regex, array($name, $regex, $state->vars, $route, $hasTrailingSlash));
+                $state->vars = array();
+                $regex = preg_replace_callback('#\?P<([^>]++)>#', $state->getVars, $rx[1]);
+                if ($hasTrailingSlash = '/' !== $regex && '/' === $regex[-1]) {
+                    $regex = substr($regex, 0, -1);
                 }
 
-                $code .= $this->compileStaticPrefixCollection($tree, $state, 0);
+                $tree->addRoute($regex, array($name, $regex, $state->vars, $route, $hasTrailingSlash));
             }
+
+            $code .= $this->compileStaticPrefixCollection($tree, $state, 0);
+
             $rx = ")(?:/?)$}{$modifiers}";
             $code .= "\n        .'{$rx}',";
             $state->regex .= $rx;
@@ -314,10 +303,13 @@ EOF;
             }
 
             list($name, $regex, $vars, $route, $hasTrailingSlash) = $route;
+            /**
+             * @var Route $route
+             */
             $compiledRoute = $route->compile();
 
             if ($compiledRoute->getRegex() === $prevRegex) {
-                $state->routes = substr_replace($state->routes, $this->compileRoute($route, $name, $vars,$hasTrailingSlash), -3, 0);
+                $state->routes = substr_replace($state->routes, $this->compileRoute($route, $name, $vars, $hasTrailingSlash), -3, 0);
                 continue;
             }
 
