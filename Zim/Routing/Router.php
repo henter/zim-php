@@ -11,6 +11,9 @@ namespace Zim\Routing;
 use Zim\Http\Exception\MethodNotAllowedException;
 use Zim\Http\Exception\NotFoundException;
 use Zim\Http\Request;
+use Zim\Routing\Dumper\Matcher;
+use Zim\Routing\Dumper\MatcherDumper;
+use Zim\Zim;
 
 class Router
 {
@@ -18,6 +21,11 @@ class Router
      * @var RouteCollection
      */
     protected $routes;
+
+    /**
+     * @var Matcher
+     */
+    protected $matcher;
 
     /**
      * current method
@@ -141,6 +149,11 @@ class Router
      */
     public function match($path, $method = 'GET') :Route
     {
+        //from routes cache
+        if ($this->getCacheMatcher()) {
+            return $this->matcher->match($path, $method);
+        }
+
         $this->method = $method;
         $this->allow = [];
 
@@ -203,5 +216,34 @@ class Router
             return $route;
         }
         return null;
+    }
+
+    /**
+     * TODO 待优化
+     *
+     * @return null|\RouteMatcher|Matcher
+     */
+    public function getCacheMatcher()
+    {
+        if (null !== $this->matcher) {
+            return $this->matcher;
+        }
+
+        $cacheDir = Zim::getInstance()->getCachePath();
+        if (!is_writable($cacheDir)) {
+            return null;
+        }
+
+        $cacheFile = $cacheDir.'RouteMatcher.php';
+        if (Zim::$debug || !file_exists($cacheFile)) {
+            $dumper = new MatcherDumper($this->getRoutes());
+            file_put_contents($cacheFile, $dumper->dump());
+        }
+
+        if (!class_exists('RouteMatcher', false)) {
+            require_once $cacheFile;
+        }
+
+        return $this->matcher = new \RouteMatcher();
     }
 }

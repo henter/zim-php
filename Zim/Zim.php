@@ -29,6 +29,8 @@ class Zim extends Container
 {
     const VERSION = 'Zim (1.0.0)';
 
+    public static $debug = false;
+
     /**
      * All of the loaded configuration files.
      *
@@ -84,7 +86,6 @@ class Zim extends Container
         $this->instance('config', new Config());
         $this->instance('event', new Dispatcher());
         $this->instance('router', new Router());
-        $this->instance('env', $this->env());
 
         $this->aliases = [
             Zim::class             => 'zim',
@@ -273,7 +274,20 @@ class Zim extends Container
 
     public function env()
     {
-        return self::config('zim.env');
+        if (isset($_SERVER['APP_ENV'])) {
+            return $_SERVER['APP_ENV'];
+        }
+        return self::config('app.env');
+    }
+
+    /**
+     * @param null $filename
+     * @return string
+     */
+    public function getCachePath($filename = null)
+    {
+        $dir = $this->basePath('var/cache/');
+        return $filename ? $dir.$filename : $dir;
     }
 
     /**
@@ -288,7 +302,7 @@ class Zim extends Container
         //do not handle for console
         if (!$this->inConsole()) {
             ini_set('display_errors', 0);
-            DebugHandler::register();
+            DebugHandler::register(self::$debug);
         }
     }
 
@@ -348,6 +362,14 @@ class Zim extends Container
         }
 
         return self::app('config')->get($key, $default);
+    }
+
+    /**
+     * @param bool $debug
+     */
+    public static function debug($debug = true)
+    {
+        self::$debug = $debug;
     }
 
     /**

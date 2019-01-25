@@ -53,7 +53,7 @@ class MatcherDumper
      *
      * @return string A PHP class representing the matcher class
      */
-    public function dump(array $options = array())
+    public function dump(array $options = [])
     {
         $options = array_replace(['class' => 'RouteMatcher'], $options);
 
@@ -82,7 +82,7 @@ EOF;
     {
         $routes = new StaticPrefixCollection();
         foreach ($this->getRoutes()->all() as $name => $route) {
-            $routes->addRoute('/(.*)', array($name, $route));
+            $routes->addRoute('/(.*)', [$name, $route]);
         }
 
         $code = '';
@@ -115,7 +115,7 @@ EOF;
      */
     private function groupStaticRoutes(RouteCollection $collection): array
     {
-        $staticRoutes = $dynamicRegex = array();
+        $staticRoutes = $dynamicRegex = [];
         $dynamicRoutes = new RouteCollection();
 
         foreach ($collection->all() as $name => $route) {
@@ -134,20 +134,20 @@ EOF;
                 }
                 foreach ($dynamicRegex as list($hostRx, $rx)) {
                     if (preg_match($rx, $url)) {
-                        $dynamicRegex[] = array(null, $regex);
+                        $dynamicRegex[] = [null, $regex];
                         $dynamicRoutes->add($name, $route);
                         continue 2;
                     }
                 }
 
-                $staticRoutes[$url][$name] = array($route, $hasTrailingSlash);
+                $staticRoutes[$url][$name] = [$route, $hasTrailingSlash];
             } else {
-                $dynamicRegex[] = array(null, $regex);
+                $dynamicRegex[] = [null, $regex];
                 $dynamicRoutes->add($name, $route);
             }
         }
 
-        return array($staticRoutes, $dynamicRoutes);
+        return [$staticRoutes, $dynamicRoutes];
     }
 
     /**
@@ -166,7 +166,7 @@ EOF;
         $code = '';
 
         foreach ($staticRoutes as $url => $routes) {
-            $code .= self::export($url)." => array(\n";
+            $code .= self::export($url) . " => array(\n";
             foreach ($routes as $name => list($route, $hasTrailingSlash)) {
                 $code .= $this->compileRoute($route, $name, null, $hasTrailingSlash);
             }
@@ -204,13 +204,13 @@ EOF;
             return '';
         }
         $code = '';
-        $state = (object) array(
-            'regex' => '',
-            'routes' => '',
-            'mark' => 0,
+        $state = (object)[
+            'regex'    => '',
+            'routes'   => '',
+            'mark'     => 0,
             'markTail' => 0,
-            'vars' => array(),
-        );
+            'vars'     => [],
+        ];
         $state->getVars = static function ($m) use ($state) {
             if ('_route' === $m[1]) {
                 return '?:';
@@ -223,13 +223,13 @@ EOF;
 
         $chunkSize = 0;
         $prev = null;
-        $perModifiers = array();
+        $perModifiers = [];
         foreach ($collection->all() as $name => $route) {
             preg_match('#[a-zA-Z]*$#', $route->compile()->getRegex(), $rx);
             if ($chunkLimit < ++$chunkSize || $prev !== $rx[0] && $route->compile()->getPathVariables()) {
                 $chunkSize = 1;
                 $routes = new RouteCollection();
-                $perModifiers[] = array($rx[0], $routes);
+                $perModifiers[] = [$rx[0], $routes];
                 $prev = $rx[0];
             }
             $routes->add($name, $route);
@@ -237,7 +237,7 @@ EOF;
 
         foreach ($perModifiers as list($modifiers, $routes)) {
             $rx = '{^(?';
-            $code .= "\n    {$state->mark} => ".self::export($rx);
+            $code .= "\n    {$state->mark} => " . self::export($rx);
             $state->mark += \strlen($rx);
             $state->regex = $rx;
 
@@ -245,13 +245,13 @@ EOF;
             foreach ($routes->all() as $name => $route) {
                 preg_match('#^.\^(.*)\$.[a-zA-Z]*$#', $route->compile()->getRegex(), $rx);
 
-                $state->vars = array();
+                $state->vars = [];
                 $regex = preg_replace_callback('#\?P<([^>]++)>#', $state->getVars, $rx[1]);
                 if ($hasTrailingSlash = '/' !== $regex && '/' === $regex[-1]) {
                     $regex = substr($regex, 0, -1);
                 }
 
-                $tree->addRoute($regex, array($name, $regex, $state->vars, $route, $hasTrailingSlash));
+                $tree->addRoute($regex, [$name, $regex, $state->vars, $route, $hasTrailingSlash]);
             }
 
             $code .= $this->compileStaticPrefixCollection($tree, $state, 0);
@@ -262,7 +262,9 @@ EOF;
             $state->markTail = 0;
 
             // if the regex is too large, throw a signaling exception to recompute with smaller chunk size
-            set_error_handler(function ($type, $message) { throw 0 === strpos($message, $this->signalingException->getMessage()) ? $this->signalingException : new \ErrorException($message); });
+            set_error_handler(function ($type, $message) {
+                throw 0 === strpos($message, $this->signalingException->getMessage()) ? $this->signalingException : new \ErrorException($message);
+            });
             try {
                 preg_match($state->regex, '');
             } finally {
@@ -273,7 +275,7 @@ EOF;
         unset($state->getVars);
 
         return "\$this->regexpList = array({$code}\n);\n"
-            ."\$this->dynamicRoutes = array(\n{$this->indent($state->routes, 1)});\n";
+            . "\$this->dynamicRoutes = array(\n{$this->indent($state->routes, 1)});\n";
     }
 
     /**
@@ -293,7 +295,7 @@ EOF;
                 $prevRegex = null;
                 $prefix = substr($route->getPrefix(), $prefixLen);
                 $state->mark += \strlen($rx = "|{$prefix}(?");
-                $code .= "\n            .".self::export($rx);
+                $code .= "\n            ." . self::export($rx);
                 $state->regex .= $rx;
                 $code .= $this->indent($this->compileStaticPrefixCollection($route, $state, $prefixLen + \strlen($prefix)));
                 $code .= "\n            .')'";
@@ -316,7 +318,7 @@ EOF;
             $state->mark += 3 + $state->markTail + \strlen($regex) - $prefixLen;
             $state->markTail = 2 + \strlen($state->mark);
             $rx = sprintf('|%s(*:%s)', substr($regex, $prefixLen), $state->mark);
-            $code .= "\n            .".self::export($rx);
+            $code .= "\n            ." . self::export($rx);
             $state->regex .= $rx;
 
             $prevRegex = $compiledRoute->getRegex();
@@ -340,7 +342,7 @@ EOF;
 
         return sprintf(
             "    array(%s, %s, %s, %s),\n",
-            self::export(array('_route' => $name) + $defaults),
+            self::export(['_route' => $name] + $defaults),
             self::export($vars),
             self::export(array_flip($route->getMethods()) ?: null),
             self::export($hasTrailingSlash)
@@ -351,7 +353,7 @@ EOF;
     {
         $code = preg_replace('/ => array\(\n    (array\(.+),\n\),/', ' => array($1),', $code);
 
-        return preg_replace('/^./m', str_repeat('    ', $level).'$0', $code);
+        return preg_replace('/^./m', str_repeat('    ', $level) . '$0', $code);
     }
 
     /**
@@ -364,7 +366,11 @@ EOF;
         }
         if (!\is_array($value)) {
             if (\is_object($value)) {
-                throw new \InvalidArgumentException('Zim\Routing\Route cannot contain objects.');
+                if ($value instanceof \Closure) {
+                    return self::closure_source($value);
+                } else {
+                    throw new \InvalidArgumentException('Zim\Routing\Route cannot contain objects.');
+                }
             }
 
             return str_replace("\n", '\'."\n".\'', var_export($value, true));
@@ -380,16 +386,35 @@ EOF;
             if ($i === $k) {
                 ++$i;
             } else {
-                $export .= self::export($k).' => ';
+                $export .= self::export($k) . ' => ';
 
                 if (\is_int($k) && $i < $k) {
                     $i = 1 + $k;
                 }
             }
 
-            $export .= self::export($v).', ';
+            $export .= self::export($v) . ', ';
         }
 
         return substr_replace($export, ')', -2);
+    }
+
+    /**
+     * @param \Closure $c
+     * @return string
+     * @throws \ReflectionException
+     */
+    public static function closure_source(\Closure $c)
+    {
+        $rfx = new \ReflectionFunction($c);
+        $args = [];
+        foreach ($rfx->getParameters() as $p) {
+            $args[] = ($p->isArray() ? 'array ' : ($p->getClass() ? $p->getClass()->name . ' ' : ''))
+                . ($p->isPassedByReference() ? '&' : '') . '$' . $p->name
+                . ($p->isOptional() ? ' = ' . var_export($p->getDefaultValue(), true) : '');
+        }
+        return 'function(' . implode(',', $args) . "){\n"
+            . implode('', array_slice(file($rfx->getFileName()),
+                $s = $rfx->getStartLine(), $rfx->getEndLine() - $s - 1)) . '}';
     }
 }
