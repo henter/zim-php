@@ -124,22 +124,6 @@ class StaticPrefixCollection
     }
 
     /**
-     * Linearizes back a set of nested routes into a collection.
-     */
-    public function populateCollection(RouteCollection $routes): RouteCollection
-    {
-        foreach ($this->items as $route) {
-            if ($route instanceof self) {
-                $route->populateCollection($routes);
-            } else {
-                $routes->add(...$route);
-            }
-        }
-
-        return $routes;
-    }
-
-    /**
      * Gets the full and static common prefixes between two route patterns.
      *
      * The static prefix stops at last at the first opening bracket.
